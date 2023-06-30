@@ -1,0 +1,1 @@
+opt -load ../build/DynamicAnalysisPass.so -StaticAnalysisPass -S simple0.ll -o simple0.static.ll

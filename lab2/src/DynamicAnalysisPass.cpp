@@ -48,6 +48,13 @@ bool Instrument::runOnFunction(Function &F) {
      * TODO: Add code to check if the instruction is a BinaryOperator and if so,
      * instrument the instruction as specified in the Lab document.
      */
+    if (auto *binary = dyn_cast<BinaryOperator>(&Inst))
+    {
+      // char c = getBinOpSymbol(binary->getOpcode());
+      // outs() << c;
+      // outs() << "\n";
+      instrumentBinOpOperands(M, binary, Line, Col);
+    }
   }
 
   return true;
@@ -77,6 +84,17 @@ void instrumentBinOpOperands(Module *M, BinaryOperator *BinOp, int Line,
    * its location, operation type and the runtime values of its
    * operands.
    */
+  char operator1 = getBinOpSymbol(BinOp->getOpcode());
+
+  auto OperatorVal = ConstantInt::get(CharType, operator1);
+  auto LineVal = ConstantInt::get(Int32Type, Line);
+  auto ColVal = ConstantInt::get(Int32Type, Col);
+  auto op1 = BinOp->getOperand(0);
+  auto op2 = BinOp->getOperand(1);
+
+  std::vector<Value *> Args = {OperatorVal, LineVal, ColVal, op1, op2};
+  auto *BinOpsFunction = M->getFunction(BINOP_OPERANDS_FUNCTION_NAME);
+  CallInst::Create(BinOpsFunction, Args, "", BinOp);
 }
 
 char Instrument::ID = 1;
