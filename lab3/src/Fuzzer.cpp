@@ -101,7 +101,8 @@ int StrategyState = 0;
  * @return Pointer to a string.
  */
 std::string selectInput(RunInfo Info) {
-  int Index = 0;
+  // int Index = 0;
+  int Index = rand() % SeedInputs.size();
   return SeedInputs[Index];
 }
 
@@ -123,7 +124,10 @@ const int LENGTH_ALPHA = sizeof(ALPHA);
  * @param Original Original input string.
  * @return std::string mutated string.
  */
-std::string mutationA(std::string Original) { return Original; }
+std::string mutationA(std::string Original) { 
+  MutationState = 0;
+  return Original; 
+}
 
 /**
  * @brief Mutation Strategy that inserts a random
@@ -133,6 +137,7 @@ std::string mutationA(std::string Original) { return Original; }
  * @return std::string mutated string.
  */
 std::string mutationB(std::string Original) {
+  MutationState = 1;
   if (Original.length() <= 0)
     return Original;
 
@@ -148,6 +153,74 @@ std::string mutationB(std::string Original) {
  *
  * Get creative with your strategies.
  */
+// Increment character
+std::string mutationC(std::string Original) {
+  MutationState = 2;
+  if (Original.length() <= 0)
+    return Original;
+  
+  std::string New = Original;
+
+  for (int i=0; i < Original.length(); i++) {
+    int ascii = Original[i] + 1;
+    New[i] = char(ascii);
+  }
+
+  return New;
+}
+
+
+// replace string with random characters
+std::string mutationD(std::string Original) {
+  MutationState = 3;
+
+  if (Original.length() <= 1)
+  {
+    return Original;
+  }
+
+  for (int i = 0; i < Original.length(); i++)
+  {
+    int random = rand() % 255;
+    Original[i] = char(random);
+  }
+
+  return Original;
+}
+
+// add a random number of characters to the string between 1 and 10
+std::string mutationE(std::string Original) {
+  MutationState = 4;
+
+  if (Original.length() <= 0)
+    return Original;
+
+  std::string New = Original;
+
+  int random = rand() % 10;
+
+  for (int i = 0; i < random; i++) {
+    int rando = rand() % 255;
+    New[New.length() + i + 1] = char(rando);
+  }
+
+  return New;
+}
+
+// Substring string
+std::string mutationF(std::string Original) {
+  MutationState = 5;
+
+  if (Original.length() <= 0)
+    return Original;
+
+  std::string New = Original;
+
+  int random = rand() % Original.length();
+  New = Original.substr(0, random);
+
+  return New;
+}
 
 /**
  * @brief Vector containing all the available mutation functions
@@ -156,7 +229,7 @@ std::string mutationB(std::string Original) {
  * For example if you implement mutationC then update it to be:
  * std::vector<MutationFn *> MutationFns = {mutationA, mutationB, mutationC};
  */
-std::vector<MutationFn *> MutationFns = {mutationA, mutationB};
+std::vector<MutationFn *> MutationFns = { mutationA, mutationB, mutationC, mutationD, mutationE, mutationF };
 
 /**
  * @brief Select a mutation function to apply to the seed input.
@@ -172,7 +245,7 @@ std::vector<MutationFn *> MutationFns = {mutationA, mutationB};
 MutationFn *selectMutationFn(RunInfo &Info) {
   int Strat = rand() % MutationFns.size();
 
-  return MutationFns[Strat];
+  return MutationFns[MutationState];
 }
 
 /*********************************************/
@@ -191,6 +264,10 @@ void feedBack(std::string &Target, RunInfo &Info) {
   PrevCoverageState = CoverageState;
   CoverageState.clear();
 
+  if (PrevCoverageState.size() > CoverageState.size()) {
+    MutationState = rand() % 6;
+  }
+
   /**
    * TODO: Implement your logic to use the coverage information from the test
    * phase to guide fuzzing. The sky is the limit!
@@ -205,7 +282,6 @@ void feedBack(std::string &Target, RunInfo &Info) {
    */
   CoverageState.assign(RawCoverageData.begin(),
                        RawCoverageData.end()); // No extra processing
-
 }
 
 int Freq = 1000;
